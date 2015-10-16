@@ -33,6 +33,7 @@ String[] filePlease = {
   "please", "bitte", "por favor", "pur favor", "per favore", "prašau", "lütfen", "snälla", "fadlan", "Požalujsta", "Proszę", "Vær så snill"
 };
 
+
 void setup() {
   size(500, 300);
   background(0);
@@ -46,7 +47,11 @@ void draw() {
   fill(255, 40);
   noStroke();
   rect(10, 95, width-20, height-105);
-
+  
+  if(fileName != ""){
+    renderFile();
+  }
+ 
   if (generating) {
     if (genCounter == bStart) {
       progress.setVisible(true).setValue(0).setCaptionLabel("").setLabelVisible(false);
@@ -57,7 +62,7 @@ void draw() {
     arrayCopy(b, temp);
     temp[genCounter] = byte(255);
     int tempDigits = String.valueOf(maxBytes).length();
-    String tempPath = "outputs/"+fileName+"_"+fileFormat+"/";
+    String tempPath = "hexplorations/"+fileName+"_"+fileFormat+"/";
     String tempName = fileName+"_"+nf(genCounter, tempDigits)+"_"+hex(genCounter)+"."+fileFormat;
     saveBytes(tempPath+tempName, temp);
     progress.setValue(map(genCounter, bStart, bEnd, 0, 100));
@@ -82,7 +87,58 @@ void draw() {
     int fileRand = floor(map(frameCount%60, 0, 60, 0, filePlease.length-1));
     consoleLog = "feed me a file... "+filePlease[fileRand]+"?";
     console.setText(consoleLog);
+  }else{
+   
   }
+}
+
+void renderFile(){
+  noFill();
+  //stroke(255,40);
+  pushMatrix();
+  translate(width*.82,height*.64);
+  //rotate(radians(mouseX));
+  float filew = height*.35;
+  float fileh = height*.5;
+  float corner = 24;
+  int lineCount = 75;
+  int linePad = 2;
+  pushMatrix();
+  translate(0,-fileh/2); //**
+  for(int i=0;i<lineCount;i++){
+    float lineW = filew/2-linePad+1;
+    if(i < 13){
+      lineW = filew/2-corner-1;
+    }
+    
+    if(generating && i > map(bStart, 0,maxBytes, 0, lineCount) && i < map(genCounter, 0,maxBytes, 0, lineCount)){
+      stroke(0,255,0, 120);
+    }else{
+      stroke(255,40);
+    }
+    
+    if(i > map(bStart, 0,maxBytes, 0, lineCount) && i < map(bEnd, 0,maxBytes, 0, lineCount)){
+      line(-filew/2+linePad, i*2, lineW, i*2);
+    }
+  }
+  popMatrix();
+  //translate(0, fileh/2-linePad);
+  //fill(0);
+  //rect(filew/2-corner, -fileh/2, corner, corner );
+  //noFill();
+  beginShape();
+    vertex(-filew/2,-fileh/2);
+    vertex(filew/2-corner, -fileh/2);
+    vertex(filew/2, -fileh/2+corner);
+    vertex(filew/2-corner, -fileh/2+corner);
+    vertex(filew/2-corner, -fileh/2);
+    vertex(filew/2, -fileh/2+corner);
+    vertex(filew/2, fileh/2);
+    vertex(-filew/2, fileh/2);
+    vertex(-filew/2,-fileh/2);
+  endShape();
+  
+  popMatrix();
 }
 
 void keyReleased() {
@@ -160,10 +216,10 @@ void setupControls() {
   progress.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.CENTER).setPaddingX(2);
 
   console = cp5.addTextarea("cnsl") 
-    .setPosition(10, 95)
+    .setPosition(11, 94)
       .setSize(width-20, height-105)
         .setFont(createFont("monaco", 10))
-          .setLineHeight(14)
+          .setLineHeight(12)
             .setColor(200)
               ;
   console
@@ -217,7 +273,7 @@ void HEXPLORE() {
       brakeCounter = 0;
     } else {
       hideGen(false);
-      brakeCounter = genCounter;
+      brakeCounter = genCounter-bStart;
       genCounter = bEnd;
       progress.setVisible(false);
       brakes = true;
