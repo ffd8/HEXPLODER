@@ -1,8 +1,8 @@
 /*
-formatHexplorer v.1
+formatHexplorer v1.0
 cc teddavis.org 2015
 */
-
+String ver = "1.0";
 
 import java.util.Arrays;
 import sojamo.drop.*;
@@ -33,6 +33,7 @@ String[] filePlease = {
   "please", "bitte", "por favor", "pur favor", "per favore", "prašau", "lütfen", "snälla", "fadlan", "Požalujsta", "Proszę", "Vær så snill"
 };
 
+String info = "// formatHexplorer v"+ver+" // \ncc teddavis.org 2015 \n\nthis tool will help you reverse engineer any file format by going through a given range of bytes within the file and setting their hex values one at a time to 'FF', thus precisely mishandling regions of the format in search of a sweet spot for further hexploitation. \n*warning, can quickly generate gigabytes of data if using a big file!* \n\n1 - set range for export above \n2 - press HEXPLORE to generate \n3 - generated files sit in the folder 'hexplorations' next to app3 - adjust range or press <- / -> arrow keys to adjust range \n 4 - HEXPLORE further";
 
 void setup() {
   size(500, 300);
