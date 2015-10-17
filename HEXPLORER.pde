@@ -1,5 +1,5 @@
 /*
-formatHexplorer v1.0
+HEXPLORER v1.0
 cc teddavis.org 2015
 */
 String ver = "1.0";
@@ -33,7 +33,8 @@ String[] filePlease = {
   "please", "bitte", "por favor", "pur favor", "per favore", "prašau", "lütfen", "snälla", "fadlan", "Požalujsta", "Proszę", "Vær så snill"
 };
 
-String info = "// formatHexplorer v"+ver+" // \ncc teddavis.org 2015 \n\nthis tool will help you reverse engineer any file format by going through a given range of bytes within the file and setting their hex values one at a time to 'FF', thus precisely mishandling regions of the format in search of a sweet spot for further hexploitation. \n*warning, can quickly generate gigabytes of data if using a big file!* \n\n1 - set range for export above \n2 - press HEXPLORE to generate \n3 - generated files sit in the folder 'hexplorations' next to app3 - adjust range or press <- / -> arrow keys to adjust range \n 4 - HEXPLORE further";
+String hr = "\n---------------\n";
+String info = "HEXPLORER v"+ver+" \ncc teddavis.org 2015"+hr+"HEXPLORE helps you reverse engineer any file [format] by going through a given range of bytes and duplicating file while injecting hex value 'FF' (max value) at each offset. by precisely mishandling each byte of the format you'll discover sweet spots in the code for further hexploitations. \n*warning, can quickly generate gigabytes of data if using a big file!*"+hr+"instructions:\n- drag + drop file into this window \n- set hexplore range using slider above \n- press HEXPLORE to generate files \n- check explorations -> '/hexplorations' folder next to app \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range or press <- / -> arrow keys to shift range \n- HEXPLORE to your heart's [or harddrive's] delight";
 
 void setup() {
   size(500, 300);
@@ -47,10 +48,11 @@ void draw() {
   background(50);
   fill(255, 40);
   noStroke();
-  rect(10, 95, width-20, height-105);
+  rect(10, 94, width-20, height-105);
   
   if(fileName != ""){
-    renderFile();
+    //renderFile();
+    fileViz(width*.82,height*.64, height*.35, height*.5, 24, true);
   }
  
   if (generating) {
@@ -63,7 +65,7 @@ void draw() {
     arrayCopy(b, temp);
     temp[genCounter] = byte(255);
     int tempDigits = String.valueOf(maxBytes).length();
-    String tempPath = "hexplorations/"+fileName+"_"+fileFormat+"/";
+    String tempPath = "HEXPLORATIONS/"+fileName+"_"+fileFormat+"/";
     String tempName = fileName+"_"+nf(genCounter, tempDigits)+"_"+hex(genCounter)+"."+fileFormat;
     saveBytes(tempPath+tempName, temp);
     progress.setValue(map(genCounter, bStart, bEnd, 0, 100));
@@ -87,22 +89,27 @@ void draw() {
   } else if(fileName ==""){
     int fileRand = floor(map(frameCount%60, 0, 60, 0, filePlease.length-1));
     consoleLog = "feed me a file... "+filePlease[fileRand]+"?";
+    consoleLog += hr+info;
     console.setText(consoleLog);
-  }else{
-   
+    fill(255,80);
+    rect(10,10,width-20,75);
+    stroke(0,120);
+    pushMatrix();
+    translate(width/2,height*.15);
+    int plus = 10;
+    line(0,-plus,0,plus);
+    line(-plus, 0, plus, 0);
+    popMatrix();
+    fileViz(width*.5,height*.15, height*.15, height*.20, 12, false);
   }
 }
 
-void renderFile(){
+void fileViz(float filex, float filey, float filew, float fileh, float corner, boolean showLines){
   noFill();
-  //stroke(255,40);
   pushMatrix();
-  translate(width*.82,height*.64);
-  //rotate(radians(mouseX));
-  float filew = height*.35;
-  float fileh = height*.5;
-  float corner = 24;
-  int lineCount = 75;
+  translate(filex, filey);
+  if(showLines){
+  int lineCount = floor(fileh/2);//75;
   int linePad = 2;
   pushMatrix();
   translate(0,-fileh/2); //**
@@ -117,16 +124,14 @@ void renderFile(){
     }else{
       stroke(255,40);
     }
-    
+ 
     if(i > map(bStart, 0,maxBytes, 0, lineCount) && i < map(bEnd, 0,maxBytes, 0, lineCount)){
       line(-filew/2+linePad, i*2, lineW, i*2);
     }
   }
   popMatrix();
-  //translate(0, fileh/2-linePad);
-  //fill(0);
-  //rect(filew/2-corner, -fileh/2, corner, corner );
-  //noFill();
+  }
+  
   beginShape();
     vertex(-filew/2,-fileh/2);
     vertex(filew/2-corner, -fileh/2);
@@ -138,7 +143,6 @@ void renderFile(){
     vertex(-filew/2, fileh/2);
     vertex(-filew/2,-fileh/2);
   endShape();
-  
   popMatrix();
 }
 
@@ -197,7 +201,7 @@ void setupControls() {
     .setFont(createFont("Monaco", 10));
 
   dropLabel = cp5.addTextlabel("droplabel")
-    .setText("DRAG + DROP FILE TO HEXPLORE")
+    .setText("") // DRAG + DROP FILE TO HEXPLORE
       .setPosition(8, 13)
         .setFont(createFont("Monaco", 10))
           ;
@@ -220,7 +224,7 @@ void setupControls() {
     .setPosition(11, 94)
       .setSize(width-20, height-105)
         .setFont(createFont("monaco", 10))
-          .setLineHeight(12)
+          .setLineHeight(16)
             .setColor(200)
               ;
   console
@@ -307,8 +311,17 @@ void range(ControlEvent theEvent) {
 }
 
 void dropEvent(DropEvent theDropEvent) {
+  boolean dirCheck = false;
+  if(theDropEvent.isFile()){
+    File myFile = theDropEvent.file();
+    if(myFile.isDirectory()){
+      dirCheck = true;
+    }
+  }
+  
   if (!generating) {
-    println("isFile()\t"+theDropEvent.isFile());
+    if (theDropEvent.isFile() && !dirCheck) {      
+    //println("isFile()\t"+theDropEvent.isFile());
     int index = theDropEvent.filePath().lastIndexOf("/");
     fileName = theDropEvent.filePath().substring(index + 1);
     index = theDropEvent.filePath().lastIndexOf(".");
@@ -316,7 +329,6 @@ void dropEvent(DropEvent theDropEvent) {
     fileName = fileName.substring(0, fileName.length()-fileFormat.length()-1);
     println(fileName +" / "+ fileFormat);
 
-    if (theDropEvent.isFile()) {
       b = loadBytes(theDropEvent.file());
       maxBytes = b.length-1;
       initRange();
