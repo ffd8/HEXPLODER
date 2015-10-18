@@ -1,12 +1,14 @@
 /*
 HEXPLORER v1.0
-cc teddavis.org 2015
-*/
+ cc teddavis.org 2015
+ */
+
 String ver = "1.0";
 
 import java.util.Arrays;
 import sojamo.drop.*;
 SDrop drop;
+MyDropListener dropList;
 
 import controlP5.*;
 ControlP5 cp5;
@@ -27,6 +29,8 @@ int genCounter = 0;
 int brakeCounter = 0;
 
 String fileName = "";
+String fileNameP = "";
+boolean loadingFile = false;
 String fileFormat = "";
 byte[] b, g;
 String[] filePlease = {
@@ -41,6 +45,8 @@ void setup() {
   background(0);
   noSmooth();
   drop = new SDrop(this);
+  dropList = new MyDropListener();
+  drop.addDropListener(dropList);
   setupControls();
 }
 
@@ -49,12 +55,12 @@ void draw() {
   fill(255, 40);
   noStroke();
   rect(10, 94, width-20, height-105);
-  
-  if(fileName != ""){
+
+  if (fileName != "") {
     //renderFile();
-    fileViz(width*.82,height*.64, height*.35, height*.5, 24, true);
+    fileViz(width*.82, height*.64, height*.35, height*.5, 24, true);
   }
- 
+
   if (generating) {
     if (genCounter == bStart) {
       progress.setVisible(true).setValue(0).setCaptionLabel("").setLabelVisible(false);
@@ -73,9 +79,9 @@ void draw() {
     console.setText(consoleLog);
     if (genCounter >= bEnd-1) {
       generating = false;
-      if(brakes){
+      if (brakes) {
         consoleLog = "stop! hexplored " + brakeCounter +" files so far! \n"+consoleLog;
-      }else{
+      } else {
         consoleLog = "done! hexplored " + (bEnd-bStart+1) +" files! \n"+consoleLog;
       }
       console.setText(consoleLog);
@@ -86,62 +92,64 @@ void draw() {
     } else {
       genCounter++;
     }
-  } else if(fileName ==""){
+  } else if (fileName =="") {
     int fileRand = floor(map(frameCount%60, 0, 60, 0, filePlease.length-1));
     consoleLog = "feed me a file... "+filePlease[fileRand]+"?";
     consoleLog += hr+info;
     console.setText(consoleLog);
-    fill(255,80);
-    rect(10,10,width-20,75);
-    stroke(0,120);
+    fill(255, 80);
+    rect(10, 10, width-20, 75);
+    stroke(0, 120);
     pushMatrix();
-    translate(width/2,height*.15);
+    translate(width/2, height*.15);
     int plus = 10;
-    line(0,-plus,0,plus);
+    line(0, -plus, 0, plus);
     line(-plus, 0, plus, 0);
     popMatrix();
-    fileViz(width*.5,height*.15, height*.15, height*.20, 12, false);
+    fileViz(width*.5, height*.15, height*.15, height*.20, 12, false);
   }
+
+  dropList.draw();
 }
 
-void fileViz(float filex, float filey, float filew, float fileh, float corner, boolean showLines){
+void fileViz(float filex, float filey, float filew, float fileh, float corner, boolean showLines) {
   noFill();
   pushMatrix();
   translate(filex, filey);
-  if(showLines){
-  int lineCount = floor(fileh/2);//75;
-  int linePad = 2;
-  pushMatrix();
-  translate(0,-fileh/2); //**
-  for(int i=0;i<lineCount;i++){
-    float lineW = filew/2-linePad+1;
-    if(i < 13){
-      lineW = filew/2-corner-1;
+  if (showLines) {
+    int lineCount = floor(fileh/2);//75;
+    int linePad = 2;
+    pushMatrix();
+    translate(0, -fileh/2); //**
+    for (int i=0; i<lineCount; i++) {
+      float lineW = filew/2-linePad+1;
+      if (i < 13) {
+        lineW = filew/2-corner-1;
+      }
+
+      if (generating && i > map(bStart, 0, maxBytes, 0, lineCount) && i < map(genCounter, 0, maxBytes, 0, lineCount)) {
+        stroke(0, 255, 0, 120);
+      } else {
+        stroke(255, 40);
+      }
+
+      if (i > map(bStart, 0, maxBytes, 0, lineCount) && i < map(bEnd, 0, maxBytes, 0, lineCount)) {
+        line(-filew/2+linePad, i*2, lineW, i*2);
+      }
     }
-    
-    if(generating && i > map(bStart, 0,maxBytes, 0, lineCount) && i < map(genCounter, 0,maxBytes, 0, lineCount)){
-      stroke(0,255,0, 120);
-    }else{
-      stroke(255,40);
-    }
- 
-    if(i > map(bStart, 0,maxBytes, 0, lineCount) && i < map(bEnd, 0,maxBytes, 0, lineCount)){
-      line(-filew/2+linePad, i*2, lineW, i*2);
-    }
+    popMatrix();
   }
-  popMatrix();
-  }
-  
+
   beginShape();
-    vertex(-filew/2,-fileh/2);
-    vertex(filew/2-corner, -fileh/2);
-    vertex(filew/2, -fileh/2+corner);
-    vertex(filew/2-corner, -fileh/2+corner);
-    vertex(filew/2-corner, -fileh/2);
-    vertex(filew/2, -fileh/2+corner);
-    vertex(filew/2, fileh/2);
-    vertex(-filew/2, fileh/2);
-    vertex(-filew/2,-fileh/2);
+  vertex(-filew/2, -fileh/2);
+  vertex(filew/2-corner, -fileh/2);
+  vertex(filew/2, -fileh/2+corner);
+  vertex(filew/2-corner, -fileh/2+corner);
+  vertex(filew/2-corner, -fileh/2);
+  vertex(filew/2, -fileh/2+corner);
+  vertex(filew/2, fileh/2);
+  vertex(-filew/2, fileh/2);
+  vertex(-filew/2, -fileh/2);
   endShape();
   popMatrix();
 }
@@ -205,7 +213,7 @@ void setupControls() {
       .setPosition(8, 13)
         .setFont(createFont("Monaco", 10))
           ;
-       
+
   progress = cp5.addSlider("progress")
     .setPosition(10, 0)
       .setSize(width-20, 10)
@@ -230,9 +238,9 @@ void setupControls() {
   console
     .setColorBackground(color(255, 40))
     .setColorForeground(color(255, 100))
-  ;
+      ;
 
-  initRange();
+  //initRange();
 }
 
 void initRange() {
@@ -246,7 +254,12 @@ void initRange() {
 
   range.setMax(maxBytes).setRangeValues(min, max);
 
-  if (fileName != "") {
+  while(fileName == fileNameP){
+    consoleLog = "loading file...";
+    console.setText(consoleLog);
+  }
+  loadingFile = false;
+  if (fileName != "" && !loadingFile) {
     dropLabel.setVisible(false);
     gen.setVisible(true);
     range.setVisible(true);
@@ -298,7 +311,7 @@ void hideGen(boolean mode) {
   } else {
     gen.setCaptionLabel("HEXPLORE")
       .setColorForeground(color(255, 40))
-        .setColorActive(color(0,255,0, 120))
+        .setColorActive(color(0, 255, 0, 120))
           ;
     range.unlock();
     progress.setVisible(false);
@@ -310,28 +323,58 @@ void range(ControlEvent theEvent) {
   updateRange();
 }
 
-void dropEvent(DropEvent theDropEvent) {
-  boolean dirCheck = false;
-  if(theDropEvent.isFile()){
-    File myFile = theDropEvent.file();
-    if(myFile.isDirectory()){
-      dirCheck = true;
-    }
-  }
-  
-  if (!generating) {
-    if (theDropEvent.isFile() && !dirCheck) {      
-    //println("isFile()\t"+theDropEvent.isFile());
-    int index = theDropEvent.filePath().lastIndexOf("/");
-    fileName = theDropEvent.filePath().substring(index + 1);
-    index = theDropEvent.filePath().lastIndexOf(".");
-    fileFormat = theDropEvent.filePath().substring(index + 1);
-    fileName = fileName.substring(0, fileName.length()-fileFormat.length()-1);
-    println(fileName +" / "+ fileFormat);
 
-      b = loadBytes(theDropEvent.file());
-      maxBytes = b.length-1;
-      initRange();
+void dropEvent(DropEvent theDropEvent) {
+}
+// a custom DropListener class.
+class MyDropListener extends DropListener {
+
+  int myColor;
+
+  MyDropListener() {
+    myColor = color(255, 0);
+    // set a target rect for drop event.
+    setTargetRect(0, 0, width, height);
+  }
+
+  void draw() {
+    fill(myColor);
+    noStroke();
+    rect(0, 0, width, height);
+  }
+
+  void dropEnter() {
+    myColor = color(0, 255, 0, 80);
+  }
+
+  void dropLeave() {
+    myColor = color(255, 0);
+  }
+
+  void dropEvent(DropEvent theDropEvent) {
+    boolean dirCheck = false;
+    if (theDropEvent.isFile()) {
+      File myFile = theDropEvent.file();
+      if (myFile.isDirectory()) {
+        dirCheck = true;
+      }
+    }
+
+    if (!generating) {
+      if (theDropEvent.isFile() && !dirCheck) {      
+        loadingFile = true;
+        int index = theDropEvent.filePath().lastIndexOf("/");
+        fileNameP = fileName;
+        fileName = theDropEvent.filePath().substring(index + 1);
+        index = theDropEvent.filePath().lastIndexOf(".");
+        fileFormat = theDropEvent.filePath().substring(index + 1);
+        fileName = fileName.substring(0, fileName.length()-fileFormat.length()-1);
+        println(fileName +" / "+ fileFormat);
+
+        b = loadBytes(theDropEvent.file());
+        maxBytes = b.length-1;
+        initRange();
+      }
     }
   }
 }
