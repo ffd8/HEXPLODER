@@ -2,6 +2,7 @@
 Reverse engineer and glitch any file through hexploiting the bytes of your choice!
 
 HEXPLODER v1.0
+
 teddavis.org 2015-16
 
 HEXPLODER helps you reverse engineer any file [format] 
@@ -13,6 +14,7 @@ you'll discover sweet spots in the code for further hexploitations!
 
 * WARNING: can easily generate gigabytes of data when using big files!
 * USE AT YOUR OWN RISK: copies files, so no irreversable damage can be done.
+
 
 instructions:
 - drag + drop file into this window
