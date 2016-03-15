@@ -1,11 +1,16 @@
 /*
-HEXPLORER v1.0
- cc teddavis.org 2015
+HEXPLODER v1.0
+ teddavis.org 2015-16
  */
 
-String ver = "1.0";
+String ver = "1.1";
 
 import java.util.Arrays;
+import java.io.File;
+import java.lang.management.*;
+int maxMemory;
+//  maxMemory = int(((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize()/1024/1024/1024);
+
 import sojamo.drop.*;
 SDrop drop;
 MyDropListener dropList;
@@ -38,7 +43,7 @@ String[] filePlease = {
 };
 
 String hr = "\n---------------\n";
-String info = "HEXPLORER v"+ver+" \ncc teddavis.org 2015"+hr+"HEXPLORE helps you reverse engineer any file [format] by going through a given range of bytes and duplicating file while injecting hex value 'FF' (max value) at each offset. by precisely mishandling each byte of the format you'll discover sweet spots in the code for further hexploitations. \n*warning, can quickly generate gigabytes of data if using a big file!*"+hr+"instructions:\n- drag + drop file into this window \n- set hexplore range using slider above \n- press HEXPLORE to generate files \n- check explorations -> '/hexplorations' folder next to app \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range or press <- / -> arrow keys to shift range \n- HEXPLORE to your heart's [or harddrive's] delight";
+String info = "HEXPLODER v"+ver+" \nteddavis.org 2015-16"+hr+"HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! \n* WARNING: can easily generate gigabytes of data when using big files! *"+hr+"instructions:\n- drag + drop file into this window \n- set hexplode range using slider above \n- press HEXPLODE to generate files \n- check '/hexplodations' (folder next to app) to see outputs \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range and/or press <- / -> arrow keys to shift range \n- HEXPLODE to your heart's [or harddrive's] delight";
 
 void setup() {
   size(500, 300);
@@ -48,6 +53,8 @@ void setup() {
   dropList = new MyDropListener();
   drop.addDropListener(dropList);
   setupControls();
+
+  //println(checkSpace());
 }
 
 void draw() {
@@ -64,25 +71,25 @@ void draw() {
   if (generating) {
     if (genCounter == bStart) {
       progress.setVisible(true).setValue(0).setCaptionLabel("").setLabelVisible(false);
-      consoleLog = "hexploring offsets "+bStart+" » "+bEnd+ " = " + (bEnd-bStart+1) +" files";
+      consoleLog = "hexploding offsets "+bStart+" » "+bEnd+ " = " + (bEnd-bStart+1) +" files";
     }
 
     byte[] temp = new byte[b.length];
     arrayCopy(b, temp);
     temp[genCounter] = byte(255);
     int tempDigits = String.valueOf(maxBytes).length();
-    String tempPath = "HEXPLORATIONS/"+fileName+"_"+fileFormat+"/";
+    String tempPath = "HEXPLODATIONS/"+fileName+"_"+fileFormat+"/";
     String tempName = fileName+"_"+nf(genCounter, tempDigits)+"_"+hex(genCounter)+"."+fileFormat;
     saveBytes(tempPath+tempName, temp);
     progress.setValue(map(genCounter, bStart, bEnd, 0, 100));
-    consoleLog = "hexploring: "+tempName +"\n"+consoleLog;
+    consoleLog = "hexploding: "+tempName +"\n"+consoleLog;
     console.setText(consoleLog);
     if (genCounter >= bEnd-1) {
       generating = false;
       if (brakes) {
-        consoleLog = "stop! hexplored " + brakeCounter +" files so far! \n"+consoleLog;
+        consoleLog = "stop! hexploded " + brakeCounter +" files so far! \n"+consoleLog;
       } else {
-        consoleLog = "done! hexplored " + (bEnd-bStart+1) +" files! \n"+consoleLog;
+        consoleLog = "done! hexploded " + (bEnd-bStart+1) +" files! \n"+consoleLog;
       }
       console.setText(consoleLog);
       progress.setCaptionLabel("DONE GENERATING!")
@@ -154,11 +161,40 @@ void fileViz(float filex, float filey, float filew, float fileh, float corner, b
   popMatrix();
 }
 
+float checkSpace() {
+  File checkSpaceDir = new File("/");
+  return checkSpaceDir.getUsableSpace()/1024/1024/1024;
+}
+
 void keyReleased() {
-  if (keyCode == 39) {
-    shiftRange(1);
-  } else if (keyCode == 37) {
-    shiftRange(0);
+  if (fileName != "") {
+
+    if (keyCode == 39) {
+      shiftRange(1);
+    } else if (keyCode == 37) {
+      shiftRange(0);
+    } else if (keyCode == 38) {
+      growRange(1);
+    } else if (keyCode == 40) {
+      growRange(0);
+    }
+  }
+}
+
+void growRange(int mode) {
+  if (mode == 1) {
+    float max = range.getArrayValue(1);
+    range
+      .setHighValue(max*1.01)
+      ;
+  } else {
+    float min = range.getArrayValue(0);
+    float max = range.getArrayValue(1);
+    if (max > min) {
+      range
+        .setHighValue(max-(max-min)*.01)
+        ;
+    }
   }
 }
 
@@ -197,7 +233,7 @@ void setupControls() {
     .setFont(createFont("Monaco", 10))
       ;
 
-  gen = cp5.addBang("HEXPLORE")
+  gen = cp5.addBang("HEXPLODE")
     .setPosition(10, 30)
       .setSize(50, 50)
         .setId(1)
@@ -209,7 +245,7 @@ void setupControls() {
     .setFont(createFont("Monaco", 10));
 
   dropLabel = cp5.addTextlabel("droplabel")
-    .setText("") // DRAG + DROP FILE TO HEXPLORE
+    .setText("") // DRAG + DROP FILE TO HEXPLODE
       .setPosition(8, 13)
         .setFont(createFont("Monaco", 10))
           ;
@@ -245,16 +281,19 @@ void setupControls() {
 
 void initRange() {
   int min = int(range.getArrayValue(0));
-  int max = int(range.getArrayValue(1));
+  int max = 10;//int(range.getArrayValue(1));
   int rangeVal = int(range.getArrayValue(1) - range.getArrayValue(0));
-  if (min >maxBytes || max > maxBytes) {
+  if (min > maxBytes || max > maxBytes) {
     min = 0;
     max = 100;
   }
 
-  range.setMax(maxBytes).setRangeValues(min, max);
+  range
+    .setMin(0)
+    .setMax(maxBytes)
+      .setRangeValues(min, maxBytes*.01);
 
-  while(fileName == fileNameP){
+  while (fileName == fileNameP) {
     consoleLog = "loading file...";
     console.setText(consoleLog);
   }
@@ -271,8 +310,16 @@ void initRange() {
 void updateRange() {   
   float min = range.getArrayValue(0);
   float max = range.getArrayValue(1);
-  String rangeVal = nf(int(range.getArrayValue(1)- range.getArrayValue(0))+1, 1);
-  range.setCaptionLabel("set range = " +rangeVal+ " offsets (files)")
+  int total = int(range.getArrayValue(1)- range.getArrayValue(0))+1;
+  String rangeVal = nf(total, 1);
+  int roughVal = int(total * (b.length/1024.0/1024.0));
+  int roughValDisplay = roughVal;
+  String roughValTerm = "Mb";
+  if (roughVal > 1024) {
+    roughValDisplay = roughVal / 1024;
+    roughValTerm = "Gb";
+  }
+  range.setCaptionLabel("set range = " +rangeVal+ " offsets (files) // roughly "+ roughValDisplay + roughValTerm)
     .setLowValueLabel(nf(int(min), 1))
       .setHighValueLabel(nf(int(max), 1))
         ;
@@ -281,7 +328,7 @@ void updateRange() {
   genCounter = bStart;
 }
 
-void HEXPLORE() {
+void HEXPLODE() {
   if (fileName != "") {
     brakes = false;
     if (!generating) {
@@ -309,7 +356,7 @@ void hideGen(boolean mode) {
           ;
     range.lock();
   } else {
-    gen.setCaptionLabel("HEXPLORE")
+    gen.setCaptionLabel("HEXPLODE")
       .setColorForeground(color(255, 40))
         .setColorActive(color(0, 255, 0, 120))
           ;
