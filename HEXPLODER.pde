@@ -1,5 +1,5 @@
 /*
-HEXPLODER v1.0
+HEXPLODER v1.1
  teddavis.org 2015-16
  */
 

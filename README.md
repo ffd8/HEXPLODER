@@ -1,7 +1,7 @@
 # HEXPLODER
 Reverse engineer and glitch any file through hexploiting the bytes of your choice!
 
-HEXPLODER v1.0
+HEXPLODER v1.1
 
 teddavis.org 2015-16
 
