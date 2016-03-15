@@ -5,12 +5,7 @@ HEXPLODER v1.0
 
 teddavis.org 2015-16
 
-HEXPLODER helps you reverse engineer any file [format] 
-by going through a range of bytes and injecting hex value 'FF' (max value) 
-at each offset within a duplicate of the file. 
-
-by precisely mishandling each byte of the format, 
-you'll discover sweet spots in the code for further hexploitations! 
+HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! 
 
 * WARNING: can easily generate gigabytes of data when using big files!
 * USE AT YOUR OWN RISK: copies files, so no irreversable damage can be done.
