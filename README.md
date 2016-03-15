@@ -6,8 +6,7 @@ Requires Libraries: sDrop + ControlP5
 
 --------------
 
-HEXPLODER v1.1
-teddavis.org 2015-16
+HEXPLODER v1.1 // teddavis.org 2015-16
 
 HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! 
 
