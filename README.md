@@ -1,5 +1,5 @@
 # HEXPLODER
-Reverse engineer and glitch any file through hexploiting the bytes of your choice!
+bites through bytes for reverse engineering any format!
 
 Built with Processing 2.2.1
 Requires Libraries: sDrop + ControlP5
