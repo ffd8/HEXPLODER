@@ -5,3 +5,5 @@ compile/
 HEXPLODATIONS/
 sandbox_windows/
 .DS_Store
+/sandbox
+

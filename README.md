@@ -4,6 +4,8 @@ bites through bytes for reverse engineering + glitching any binary file format!
 Built with Processing ~~2.2.1~~ 3.5.4  
 Requires libraries: `Drop` + `ControlP5`
 
+--------------
+
 HEXPLODER v1.3
 teddavis.org 2015 – 22
 
@@ -13,7 +15,8 @@ HEXPLODER helps you reverse engineer any file [format] by going through a range 
 * USE AT YOUR OWN RISK: copies files, so no irreversible damage can be done.
 
 
-instructions:
+instructions:  
+- move `HEXPLODER` to your `~/Documents` folder (`Desktop` won't work...)  
 - drag + drop file into this window
 - set hexplode range using slider above
 - press HEXPLODE to generate files
