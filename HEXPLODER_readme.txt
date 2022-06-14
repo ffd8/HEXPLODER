@@ -1,7 +1,7 @@
-# HEXPLODER
+HEXPLODER
 bites through bytes for reverse engineering + glitching any binary file format!  
 
-Built with Processing ~~2.2.1~~ 3.5.4  
+Built with Processing 3.5.4  
 Requires libraries: `Drop` + `ControlP5`
 
 --------------

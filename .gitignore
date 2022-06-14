@@ -3,3 +3,5 @@ test_files/
 HEXPLORATIONS/
 compile/
 HEXPLODATIONS/
+sandbox_windows/
+.DS_Store

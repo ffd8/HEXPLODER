@@ -1,17 +1,24 @@
 /*
-HEXPLODER v1.1
- teddavis.org 2015-16
+ HEXPLODER v1.3
+ teddavis.org 2015-22
+ 
+ - run yourself within Processing 3.5.4:
+ - first install 'drop' and 'controlp5' libraries (Sketch Menu » Import Library... » Add Library...)
+ - press the magical PLAY button
+ 
  */
 
-String ver = "1.1";
+boolean useWindows = false; // *** WINDOWS users: change to true! ***
 
+String ver = "1.3";
+String verDates = "2015 - 22";
 import java.util.Arrays;
 import java.io.File;
 import java.lang.management.*;
 int maxMemory;
 //  maxMemory = int(((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize()/1024/1024/1024);
 
-import sojamo.drop.*;
+import drop.*;
 SDrop drop;
 MyDropListener dropList;
 
@@ -43,7 +50,7 @@ String[] filePlease = {
 };
 
 String hr = "\n---------------\n";
-String info = "HEXPLODER v"+ver+" \nteddavis.org 2015-16"+hr+"HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! \n* WARNING: can easily generate gigabytes of data when using big files! *"+hr+"instructions:\n- drag + drop file into this window \n- set hexplode range using slider above \n- press HEXPLODE to generate files \n- check '/hexplodations' (folder next to app) to see outputs \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range and/or press <- / -> arrow keys to shift range \n- HEXPLODE to your heart's [or harddrive's] delight";
+String info = "HEXPLODER v"+ver+" \nteddavis.org "+verDates+hr+"HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! \n* WARNING: can easily generate gigabytes of data when using big files! *"+hr+"instructions:\n- drag + drop file into this window \n- set hexplode range using slider above \n- press HEXPLODE to generate files \n- check '/hexplodations' (folder next to app) to see outputs \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range and/or press <- / -> arrow keys to shift range \n- HEXPLODE to your heart's [or harddrive's] delight";
 
 void setup() {
   size(500, 300);
@@ -76,9 +83,9 @@ void draw() {
 
     byte[] temp = new byte[b.length];
     arrayCopy(b, temp);
-    temp[genCounter] = byte(255);
+    temp[genCounter] = byte(255); // *** add custom byte value?
     int tempDigits = String.valueOf(maxBytes).length();
-    String tempPath = "HEXPLODATIONS/"+fileName+"_"+fileFormat+"/";
+    String tempPath = "HEXPLODATIONS/"+fileName+"_"+fileFormat+"/"; 
     String tempName = fileName+"_"+nf(genCounter, tempDigits)+"_"+hex(genCounter)+"."+fileFormat;
     saveBytes(tempPath+tempName, temp);
     progress.setValue(map(genCounter, bStart, bEnd, 0, 100));
@@ -230,7 +237,7 @@ void setupControls() {
           .setVisible(false);
   ;
   range.getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(1)
-    .setFont(createFont("Monaco", 10))
+    //.setFont(createFont("Monaco", 10))
       ;
 
   gen = cp5.addBang("HEXPLODE")
@@ -242,12 +249,13 @@ void setupControls() {
               .setVisible(false);
   ;
   gen.getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(1)
-    .setFont(createFont("Monaco", 10));
+    //.setFont(createFont("Monaco", 10))
+    ;
 
   dropLabel = cp5.addTextlabel("droplabel")
     .setText("") // DRAG + DROP FILE TO HEXPLODE
       .setPosition(8, 13)
-        .setFont(createFont("Monaco", 10))
+        //.setFont(createFont("Monaco", 10))
           ;
 
   progress = cp5.addSlider("progress")
@@ -267,7 +275,7 @@ void setupControls() {
   console = cp5.addTextarea("cnsl") 
     .setPosition(11, 94)
       .setSize(width-20, height-105)
-        .setFont(createFont("monaco", 10))
+        //.setFont(createFont("monaco", 10))
           .setLineHeight(16)
             .setColor(200)
               ;
@@ -410,7 +418,12 @@ class MyDropListener extends DropListener {
     if (!generating) {
       if (theDropEvent.isFile() && !dirCheck) {      
         loadingFile = true;
-        int index = theDropEvent.filePath().lastIndexOf("/");
+        int index;
+        if(useWindows){
+          index = theDropEvent.filePath().lastIndexOf("\\"); // ** changed to \\ for windows!!!!
+        }else{
+          index = theDropEvent.filePath().lastIndexOf("/"); 
+        }
         fileNameP = fileName;
         fileName = theDropEvent.filePath().substring(index + 1);
         index = theDropEvent.filePath().lastIndexOf(".");
@@ -425,4 +438,3 @@ class MyDropListener extends DropListener {
     }
   }
 }
-
