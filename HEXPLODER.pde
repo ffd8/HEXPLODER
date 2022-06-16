@@ -1,5 +1,5 @@
 /*
- HEXPLODER v1.3
+ HEXPLODER v1.4
  teddavis.org 2015-22
  
  - run yourself within Processing 3.5.4:
@@ -10,7 +10,9 @@
 
 boolean useWindows = false; // *** WINDOWS users: change to true! ***
 
-String ver = "1.3";
+
+
+String ver = "1.4";
 String verDates = "2015 - 22";
 import java.util.Arrays;
 import java.io.File;
@@ -29,6 +31,8 @@ Slider progress;
 Textlabel dropLabel;
 Textlabel fileLabel;
 Bang gen, can;
+Toggle mode;
+Numberbox setValue, offsetValue;
 Textarea console;
 String consoleLog = "";
 
@@ -50,7 +54,7 @@ String[] filePlease = {
 };
 
 String hr = "\n---------------\n";
-String info = "HEXPLODER v"+ver+" \nteddavis.org "+verDates+hr+"HEXPLODER helps you reverse engineer any file [format] by going through a range of bytes and injecting hex value 'FF' (max value) at each offset within a duplicate of the file. by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! \n* WARNING: can easily generate gigabytes of data when using big files! *"+hr+"instructions:\n- drag + drop file into this window \n- set hexplode range using slider above \n- press HEXPLODE to generate files \n- check '/hexplodations' (folder next to app) to see outputs \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range and/or press <- / -> arrow keys to shift range \n- HEXPLODE to your heart's [or harddrive's] delight";
+String info = "HEXPLODER v"+ver+" \nteddavis.org "+verDates+hr+"HEXPLODER helps you reverse engineer any file [format] by changing one byte at a time throughout a range of the file data. in CHANGE mode a new hex value 'FF' (255 as default max value) replaces each byte offset, in OFFSET mode, the existing byte is adjusted in a +/- direction. HEXPLODER duplicates the file for each change, so work with small files! by precisely mishandling each byte of the format, you'll discover sweet spots in the code for further hexploitations! \n* WARNING: can easily generate gigabytes of data when using big files! *"+hr+"instructions:\n- drag + drop file into this window \n- set hexplode range using slider above \n- press HEXPLODE to generate files \n- check '/hexplodations' (folder next to app) to see outputs \n- filename has byte offset in dec + hex for 'goto offset' in any hexeditor \n- adjust range and/or press <- / -> arrow keys to shift range \n- toggle mode between CHANGE and OFFSET (sets or adjusts byte value \n- HEXPLODE to your heart's [or harddrive's] delight";
 
 void setup() {
   size(500, 300);
@@ -68,7 +72,7 @@ void draw() {
   background(50);
   fill(255, 40);
   noStroke();
-  rect(10, 94, width-20, height-105);
+  rect(10, 114, width-20, height-125);
 
   if (fileName != "") {
     //renderFile();
@@ -83,7 +87,12 @@ void draw() {
 
     byte[] temp = new byte[b.length];
     arrayCopy(b, temp);
-    temp[genCounter] = byte(255); // *** add custom byte value?
+    int tempValue = int(temp[genCounter]); // current byte value
+    if(!mode.getBooleanValue()){
+      temp[genCounter] = byte(constrain(tempValue + floor(offsetValue.getValue()), 0, 255)); // *** add # to current value
+    }else{
+      temp[genCounter] = byte(floor(setValue.getValue())); // *** add custom byte value?
+    }
     int tempDigits = String.valueOf(maxBytes).length();
     String tempPath = "HEXPLODATIONS/"+fileName+"_"+fileFormat+"/"; 
     String tempName = fileName+"_"+nf(genCounter, tempDigits)+"_"+hex(genCounter)+"."+fileFormat;
@@ -112,15 +121,15 @@ void draw() {
     consoleLog += hr+info;
     console.setText(consoleLog);
     fill(255, 80);
-    rect(10, 10, width-20, 75);
+    rect(10, 10, width-20, 95);
     stroke(0, 120);
     pushMatrix();
-    translate(width/2, height*.15);
+    translate(width/2, height*.2);
     int plus = 10;
     line(0, -plus, 0, plus);
     line(-plus, 0, plus, 0);
     popMatrix();
-    fileViz(width*.5, height*.15, height*.15, height*.20, 12, false);
+    fileViz(width*.5, height*.2, height*.15, height*.20, 12, false);
   }
 
   dropList.draw();
@@ -230,7 +239,7 @@ void shiftRange(int mode) {
 
 void setupControls() {
   cp5 = new ControlP5(this);
-  range = cp5.addRange("range", 0, 1000, 100, 600, 75, 30, width-85, 50)
+  range = cp5.addRange("range", 0, 1000, 100, 600, 75, 20, width-85, 50)
     .setColorForeground(color(255, 80))
       .setColorBackground(color(255, 40))
         .setColorActive(color(255, 120))
@@ -241,7 +250,7 @@ void setupControls() {
       ;
 
   gen = cp5.addBang("HEXPLODE")
-    .setPosition(10, 30)
+    .setPosition(10, 20)
       .setSize(50, 50)
         .setId(1)
           .setColorForeground(color(255, 40))
@@ -271,10 +280,59 @@ void setupControls() {
                       .setVisible(false)
                         ;
   progress.getCaptionLabel().align(ControlP5.RIGHT, ControlP5.CENTER).setPaddingX(2);
-
+  
+  
+   setValue = cp5.addNumberbox("CHANGE")
+     .setPosition(140,86)
+     .setSize(50,20)
+     //.setScrollSensitivity(1)
+     .setValue(255)
+     .setRange(0, 255)
+     .setDecimalPrecision(0)
+            .setColorForeground(color(255, 80))
+              .setColorBackground(color(255, 40))
+                .setColorActive(color(255, 120))
+                     .setVisible(false)
+     ;
+     setValue.getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(1);
+  
+    // MODE - change / offset
+    mode = cp5.addToggle("BYTE MODE")
+     .setPosition(75, 86)
+     .setSize(50,20)
+     .setValue(true)
+            .setColorForeground(color(255, 80))
+              .setColorBackground(color(255, 40))
+                .setColorActive(color(255, 120))
+     .setMode(ControlP5.SWITCH)
+          .setVisible(false)
+     ;
+  mode.getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(1);
+  mode.onChange(new CallbackListener() {
+       public void controlEvent(CallbackEvent theEvent) {
+        modeCheck();
+       };
+     });
+     
+     offsetValue = cp5.addNumberbox("OFFSET")
+     .setPosition(140,86)
+     .setSize(50,20)
+     //.setScrollSensitivity(1)
+     .setValue(1)
+     .setRange(-255, 255)
+     .setDecimalPrecision(0)
+            .setColorForeground(color(255, 80))
+              .setColorBackground(color(255, 40))
+                .setColorActive(color(255, 120))
+     .setVisible(false)
+     ;
+     offsetValue.getCaptionLabel().align(ControlP5.LEFT, ControlP5.TOP_OUTSIDE).setPaddingX(1);
+     
+     
+     
   console = cp5.addTextarea("cnsl") 
-    .setPosition(11, 94)
-      .setSize(width-20, height-105)
+    .setPosition(11, 114)
+      .setSize(width-20, height-125)
         //.setFont(createFont("monaco", 10))
           .setLineHeight(16)
             .setColor(200)
@@ -286,6 +344,10 @@ void setupControls() {
 
   //initRange();
 }
+
+//void SET_OFFSET(){
+//  modeCheck();
+//}
 
 void initRange() {
   int min = int(range.getArrayValue(0));
@@ -310,8 +372,20 @@ void initRange() {
     dropLabel.setVisible(false);
     gen.setVisible(true);
     range.setVisible(true);
+    mode.setVisible(true);
+    modeCheck();
     consoleLog = "imported: "+fileName+"."+fileFormat+" // "+nf(maxBytes, 1)+" bytes";
     console.setText(consoleLog);
+  }
+}
+
+void modeCheck(){
+  if(mode.getBooleanValue()){
+    setValue.setVisible(true);
+    offsetValue.setVisible(false);
+  }else{
+    setValue.setVisible(false);
+    offsetValue.setVisible(true);
   }
 }
 
